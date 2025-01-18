@@ -69,6 +69,22 @@ func (a *Adapter) Enable() error {
 	return nil
 }
 
+// Use assigns the device to the adapter. It must already have been initialised.
+func (a *Adapter) Use(dev *cyw43439.Device) {
+	transport := &hciSPI{dev: dev}
+
+	a.hci, a.att = newBLEStack(transport)
+	if debug {
+		println("Enabling CYW43439 device")
+	}
+
+	a.enable()
+
+	if debug {
+		println("Enabled CYW43439 device")
+	}
+}
+
 type hciSPI struct {
 	dev *cyw43439.Device
 }

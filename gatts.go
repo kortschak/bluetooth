@@ -19,6 +19,7 @@ type CharacteristicConfig struct {
 	UUID
 	Value      []byte
 	Flags      CharacteristicPermissions
+	ReadEvent  func(client Connection, offset int, value []byte)
 	WriteEvent WriteEvent
 }
 

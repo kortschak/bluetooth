@@ -53,6 +53,15 @@ func (a *Adapter) AddService(service *Service) error {
 			service.Characteristics[i].Handle.value = service.Characteristics[i].Value
 		}
 
+		if service.Characteristics[i].Flags.Read() &&
+			service.Characteristics[i].ReadEvent != nil {
+			handlers := append(a.charReadHandlers, charReadHandler{
+				handle:   valueHandle,
+				callback: service.Characteristics[i].ReadEvent,
+			})
+			a.charReadHandlers = handlers
+		}
+
 		if (service.Characteristics[i].Flags.Write() ||
 			service.Characteristics[i].Flags.WriteWithoutResponse()) &&
 			service.Characteristics[i].WriteEvent != nil {
@@ -122,6 +131,11 @@ func (c *Characteristic) writeCCCD(val uint16) error {
 func (c *Characteristic) readValue() ([]byte, error) {
 	if !c.permissions.Read() {
 		return nil, errNoRead
+	}
+
+	hdl := c.adapter.getCharReadHandler(c.handle)
+	if hdl != nil {
+		hdl.callback(Connection(c.handle), 0, c.value)
 	}
 
 	return c.value, nil

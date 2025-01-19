@@ -21,6 +21,7 @@ type hciAdapter struct {
 
 	connectedDevices     []Device
 	notificationsStarted bool
+	charReadHandlers     []charReadHandler
 	charWriteHandlers    []charWriteHandler
 }
 
@@ -182,6 +183,26 @@ func (a *hciAdapter) findConnection(handle uint16) Device {
 	}
 
 	return Device{}
+}
+
+// charReadHandler contains a handler->callback mapping for characteristic
+// writes.
+type charReadHandler struct {
+	handle   uint16
+	callback func(connection Connection, offset int, value []byte)
+}
+
+// getCharReadHandler returns a characteristic write handler if one matches the
+// handle, or nil otherwise.
+func (a *Adapter) getCharReadHandler(handle uint16) *charReadHandler {
+	for i := range a.charReadHandlers {
+		h := &a.charReadHandlers[i]
+		if h.handle == handle {
+			return h
+		}
+	}
+
+	return nil
 }
 
 // charWriteHandler contains a handler->callback mapping for characteristic
